@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Budget Management - Cash IT{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1><i class="fas fa-calculator"></i> Budget Management</h1>
+                        <p class="text-muted mb-0">Create and track your monthly spending budgets</p>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBudgetModal">
+                        <i class="fas fa-plus"></i> Create Budget
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Budget Overview -->
+    {% if budget_data %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h4><i class="fas fa-chart-pie"></i> Current Month Budget - {{ current_month }}</h4>
+                
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="budget-summary-card total-budget">
+                            <div class="budget-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div class="budget-info">
+                                <h3>${{ "{:,.2f}".format(budget_data.categories.values() | sum) }}</h3>
+                                <p>Total Budget</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="budget-summary-card total-spent">
+                            <div class="budget-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="budget-info">
+                                <h3>${{ "{:,.2f}".format(spending_data.values() | sum) }}</h3>
+                                <p>Total Spent</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="budget-summary-card remaining-budget">
+                            <div class="budget-icon">
+                                <i class="fas fa-piggy-bank"></i>
+                            </div>
+                            <div class="budget-info">
+                                <h3>${{ "{:,.2f}".format((budget_data.categories.values() | sum) - (spending_data.values() | sum)) }}</h3>
+                                <p>Remaining</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Categories -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-list"></i> Category Breakdown</h5>
+                
+                <div class="budget-categories mt-3">
+                    {% for category, budgeted in budget_data.categories.items() %}
+                    {% set spent = spending_data.get(category, 0) %}
+                    {% set remaining = budgeted - spent %}
+                    {% set percentage = (spent / budgeted * 100) if budgeted > 0 else 0 %}
+                    
+                    <div class="budget-category-item">
+                        <div class="category-header">
+                            <h6>{{ category }}</h6>
+                            <div class="category-amounts">
+                                <span class="spent">${{ "{:,.2f}".format(spent) }}</span> / 
+                                <span class="budget">${{ "{:,.2f}".format(budgeted) }}</span>
+                            </div>
+                        </div>
+                        <div class="category-progress">
+                            <div class="progress">
+                                <div class="progress-bar {{ 'bg-danger' if percentage > 100 else 'bg-warning' if percentage > 80 else 'bg-success' }}" 
+                                     style="width: {{ min(percentage, 100) }}%"></div>
+                            </div>
+                            <div class="progress-info">
+                                <span class="percentage">{{ "{:.1f}".format(percentage) }}%</span>
+                                <span class="remaining {{ 'text-danger' if remaining < 0 else 'text-success' }}">
+                                    ${{ "{:,.2f}".format(remaining) }} {{ 'over budget' if remaining < 0 else 'remaining' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Budget Chart -->
+                <div class="mt-4">
+                    <canvas id="budgetChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Budget History -->
+    {% if budget_history %}
+    <div class="row">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-history"></i> Budget History</h5>
+                
+                <div class="budget-history mt-3">
+                    {% for budget in budget_history %}
+                    <div class="budget-history-item">
+                        <div class="budget-month">
+                            <h6>{{ budget.month }}</h6>
+                            <p class="text-muted">Created {{ budget.created_at[:10] }}</p>
+                        </div>
+                        <div class="budget-total">
+                            <strong>${{ "{:,.2f}".format(budget.categories.values() | sum) }}</strong>
+                        </div>
+                        <div class="budget-actions">
+                            <button class="btn btn-outline-primary btn-sm" onclick="copyBudget('{{ budget.month }}')">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <div class="empty-state">
+                    <i class="fas fa-calculator"></i>
+                    <h4>No Budget Created Yet</h4>
+                    <p>Start managing your finances by creating your first monthly budget.</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBudgetModal">
+                        <i class="fas fa-plus"></i> Create Your First Budget
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Create Budget Modal -->
+<div class="modal fade" id="createBudgetModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-calculator"></i> Create Monthly Budget</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_budget') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Budget Month</label>
+                        <input type="month" class="form-control" name="month" required
+                               value="{{ datetime.now().strftime('%Y-%m') }}">
+                    </div>
+                    
+                    <h6>Category Budgets</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Food & Dining</label>
+                            <input type="number" class="form-control" name="category_Food & Dining" 
+                                   step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Shopping</label>
+                            <input type="number" class="form-control" name="category_Shopping" 
+                                   step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Transportation</label>
+                            <input type="number" class="form-control" name="category_Transportation" 
+                                   step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Utilities</label>
+                            <input type="number" class="form-control" name="category_Utilities" 
+                                   step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Healthcare</label>
+                            <input type="number" class="form-control" name="category_Healthcare" 
+                                   step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Entertainment</label>
+                            <input type="number" class="form-control" name="category_Entertainment" 
+                                   step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Travel</label>
+                            <input type="number" class="form-control" name="category_Travel" 
+                                   step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Education</label>
+                            <input type="number" class="form-control" name="category_Education" 
+                                   step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Other</label>
+                            <input type="number" class="form-control" name="category_Other" 
+                                   step="0.01" min="0" placeholder="0.00">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between">
+                            <strong>Total Budget:</strong>
+                            <strong id="totalBudget">$0.00</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Create Budget
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+// Calculate total budget in real-time
+document.addEventListener('DOMContentLoaded', function() {
+    const budgetInputs = document.querySelectorAll('input[name^="category_"]');
+    const totalBudgetElement = document.getElementById('totalBudget');
+    
+    function updateTotal() {
+        let total = 0;
+        budgetInputs.forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            total += value;
+        });
+        totalBudgetElement.textContent = CashIT.formatCurrency(total);
+    }
+    
+    budgetInputs.forEach(input => {
+        input.addEventListener('input', updateTotal);
+    });
+    
+    {% if budget_data and spending_data %}
+    // Create budget chart
+    createBudgetChart();
+    {% endif %}
+});
+
+{% if budget_data and spending_data %}
+function createBudgetChart() {
+    const ctx = document.getElementById('budgetChart').getContext('2d');
+    const categories = {{ budget_data.categories.keys() | list | tojson }};
+    const budgetedAmounts = {{ budget_data.categories.values() | list | tojson }};
+    const spentAmounts = {{ [spending_data.get(cat, 0) for cat in budget_data.categories.keys()] | tojson }};
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: categories,
+            datasets: [
+                {
+                    label: 'Budgeted',
+                    data: budgetedAmounts,
+                    backgroundColor: CashIT.chartColors.info[0],
+                    borderColor: CashIT.chartColors.info[1],
+                    borderWidth: 2
+                },
+                {
+                    label: 'Spent',
+                    data: spentAmounts,
+                    backgroundColor: CashIT.chartColors.primary[0],
+                    borderColor: CashIT.chartColors.primary[1],
+                    borderWidth: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Budget vs Spending Comparison'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+{% endif %}
+
+function copyBudget(month) {
+    // This would copy a previous budget to create a new one
+    CashIT.showNotification('Budget copying feature coming soon!', 'info');
+}
+</script>
+{% endblock %}

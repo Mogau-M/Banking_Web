@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <h1 class="hero-title">Welcome to Cash IT! <i class="fas fa-rocket"></i></h1>
+                <p class="hero-subtitle">Your smart banking companion for a brighter financial future</p>
+                <div class="hero-buttons">
+                    {% if session.user_email %}
+                        <a href="{{ url_for('account') }}" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-chart-line"></i> Go to Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-sign-in-alt"></i> Get Started
+                        </a>
+                        <a href="#features" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-info-circle"></i> Learn More
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-card">
+                    <div class="card glass-card">
+                        <div class="card-body text-center">
+                            <h3><i class="fas fa-mobile-alt"></i> Modern Banking</h3>
+                            <p>Experience the future of banking with our advanced financial management tools.</p>
+                            <div class="feature-icons">
+                                <span><i class="fas fa-shield-alt"></i></span>
+                                <span><i class="fas fa-chart-pie"></i></span>
+                                <span><i class="fas fa-credit-card"></i></span>
+                                <span><i class="fas fa-piggy-bank"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section id="features" class="features-section py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Why Choose Cash IT?</h2>
+            <p class="section-subtitle">Comprehensive financial management tools at your fingertips</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Smart Analytics</h4>
+                    <p>Get personalized insights into your spending patterns and financial health with advanced analytics.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <h4>Savings Goals</h4>
+                    <p>Set and track savings goals with visual progress indicators and milestone celebrations.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h4>Budget Management</h4>
+                    <p>Create detailed budgets with category-wise spending limits and real-time tracking.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h4>Investment Tracking</h4>
+                    <p>Monitor your investment portfolio with performance analytics and risk assessment tools.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <h4>Bill Management</h4>
+                    <p>Never miss a payment with automated bill tracking and payment reminders.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Bank-Grade Security</h4>
+                    <p>Your financial data is protected with advanced encryption and multi-factor authentication.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <div class="glass-card p-5">
+                    <h2><i class="fas fa-star"></i> Ready to Transform Your Finances?</h2>
+                    <p class="lead mb-4">Join thousands of users who have already taken control of their financial future with Cash IT.</p>
+                    {% if not session.user_email %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket"></i> Start Your Journey
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{
+    "investments": [
+        {
+            "id": "550e8400-e29b-41d4-a716-446655440200",
+            "user_email": "demo@cashit.com",
+            "name": "S&P 500 Index Fund",
+            "type": "Mutual Fund",
+            "invested_amount": 5000.00,
+            "current_value": 5420.00,
+            "purchase_date": "2024-06-01",
+            "description": "Diversified index fund investment",
+            "created_at": "2024-06-01T00:00:00"
+        }
+    ]
+}

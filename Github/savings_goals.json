@@ -1,0 +1,14 @@
+{
+    "goals": [
+        {
+            "id": "550e8400-e29b-41d4-a716-446655440100",
+            "user_email": "demo@cashit.com",
+            "name": "Emergency Fund",
+            "target_amount": 10000.00,
+            "current_amount": 3500.00,
+            "target_date": "2024-12-31",
+            "description": "Build emergency fund for 6 months expenses",
+            "created_at": "2024-08-01T00:00:00"
+        }
+    ]
+}

@@ -1,0 +1,1096 @@
+{% extends "base.html" %}
+
+{% block title %}Security Center - Cash IT{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1><i class="fas fa-shield-alt"></i> Security Center</h1>
+                        <p class="text-muted mb-0">Manage your account security settings and monitor activity</p>
+                    </div>
+                    <div class="security-score">
+                        <div class="score-circle">
+                            <span class="score-value">92</span>
+                            <span class="score-label">Strong</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Security Content -->
+        <div class="col-lg-8">
+            <!-- Password & Authentication -->
+            <div class="glass-card p-4 mb-4">
+                <h5><i class="fas fa-key"></i> Password & Authentication</h5>
+                
+                <div class="security-section">
+                    <div class="security-item">
+                        <div class="security-info">
+                            <h6><i class="fas fa-lock"></i> Password</h6>
+                            <p>Last changed 30 days ago</p>
+                            <div class="password-strength">
+                                <div class="strength-bar">
+                                    <div class="strength-fill strong"></div>
+                                </div>
+                                <span class="strength-label">Strong</span>
+                            </div>
+                        </div>
+                        <div class="security-action">
+                            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                <i class="fas fa-edit"></i> Change Password
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="security-item">
+                        <div class="security-info">
+                            <h6><i class="fas fa-mobile-alt"></i> Two-Factor Authentication</h6>
+                            <p>Add an extra layer of security with SMS or authenticator app</p>
+                            <span class="status-badge disabled">Disabled</span>
+                        </div>
+                        <div class="security-action">
+                            <button class="btn btn-success" onclick="enable2FA()">
+                                <i class="fas fa-shield-check"></i> Enable 2FA
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="security-item">
+                        <div class="security-info">
+                            <h6><i class="fas fa-fingerprint"></i> Biometric Login</h6>
+                            <p>Use fingerprint or face recognition for quick login</p>
+                            <span class="status-badge enabled">Enabled</span>
+                        </div>
+                        <div class="security-action">
+                            <button class="btn btn-outline-secondary" onclick="manageBiometrics()">
+                                <i class="fas fa-cog"></i> Manage
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Activity -->
+            <div class="glass-card p-4 mb-4">
+                <h5><i class="fas fa-history"></i> Recent Activity</h5>
+                
+                <div class="activity-filters mb-3">
+                    <button class="btn btn-outline-primary btn-sm active" data-filter="all">All Activity</button>
+                    <button class="btn btn-outline-primary btn-sm" data-filter="login">Logins</button>
+                    <button class="btn btn-outline-primary btn-sm" data-filter="password">Password Changes</button>
+                    <button class="btn btn-outline-primary btn-sm" data-filter="settings">Settings Changes</button>
+                </div>
+                
+                <div class="activity-list">
+                    {% for event in security_events %}
+                    <div class="activity-item">
+                        <div class="activity-icon {{ event.type.lower() }}">
+                            <i class="fas fa-{{ 'sign-in-alt' if event.type == 'Login' else 'key' if 'Password' in event.type else 'cog' }}"></i>
+                        </div>
+                        <div class="activity-details">
+                            <div class="activity-description">{{ event.description }}</div>
+                            <div class="activity-meta">
+                                <span><i class="fas fa-clock"></i> {{ event.timestamp[:16] }}</span>
+                                <span><i class="fas fa-map-marker-alt"></i> {{ event.location }}</span>
+                                <span><i class="fas fa-desktop"></i> {{ event.ip_address }}</span>
+                            </div>
+                        </div>
+                        <div class="activity-status">
+                            <span class="status-badge success">Successful</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Mock additional activity items -->
+                    <div class="activity-item">
+                        <div class="activity-icon login">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
+                        <div class="activity-details">
+                            <div class="activity-description">Failed login attempt</div>
+                            <div class="activity-meta">
+                                <span><i class="fas fa-clock"></i> 2024-08-13 09:15</span>
+                                <span><i class="fas fa-map-marker-alt"></i> Unknown Location</span>
+                                <span><i class="fas fa-desktop"></i> 192.168.1.45</span>
+                            </div>
+                        </div>
+                        <div class="activity-status">
+                            <span class="status-badge warning">Failed</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <button class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-download"></i> Export Activity Log
+                    </button>
+                </div>
+            </div>
+
+            <!-- Connected Devices -->
+            <div class="glass-card p-4 mb-4">
+                <h5><i class="fas fa-devices"></i> Connected Devices</h5>
+                
+                <div class="devices-list">
+                    <div class="device-item current">
+                        <div class="device-icon">
+                            <i class="fas fa-laptop"></i>
+                        </div>
+                        <div class="device-info">
+                            <h6>Chrome on Windows</h6>
+                            <p>Current session • Last active now</p>
+                            <span class="device-location">New York, NY</span>
+                        </div>
+                        <div class="device-status">
+                            <span class="status-badge success">Current Device</span>
+                        </div>
+                    </div>
+                    
+                    <div class="device-item">
+                        <div class="device-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="device-info">
+                            <h6>iPhone Safari</h6>
+                            <p>Last active 2 hours ago</p>
+                            <span class="device-location">New York, NY</span>
+                        </div>
+                        <div class="device-actions">
+                            <button class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-sign-out-alt"></i> Sign Out
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="device-item">
+                        <div class="device-icon">
+                            <i class="fas fa-tablet-alt"></i>
+                        </div>
+                        <div class="device-info">
+                            <h6>iPad Chrome</h6>
+                            <p>Last active 5 days ago</p>
+                            <span class="device-location">Brooklyn, NY</span>
+                        </div>
+                        <div class="device-actions">
+                            <button class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-sign-out-alt"></i> Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-outline-warning">
+                        <i class="fas fa-sign-out-alt"></i> Sign Out All Other Devices
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Security Checklist -->
+            <div class="glass-card p-4 mb-4">
+                <h6><i class="fas fa-tasks"></i> Security Checklist</h6>
+                
+                <div class="security-checklist">
+                    <div class="checklist-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Strong password set</span>
+                    </div>
+                    <div class="checklist-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Email verified</span>
+                    </div>
+                    <div class="checklist-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Phone number added</span>
+                    </div>
+                    <div class="checklist-item pending">
+                        <i class="fas fa-circle"></i>
+                        <span>Enable two-factor authentication</span>
+                    </div>
+                    <div class="checklist-item pending">
+                        <i class="fas fa-circle"></i>
+                        <span>Set up security questions</span>
+                    </div>
+                </div>
+                
+                <div class="checklist-progress">
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-success" style="width: 60%"></div>
+                    </div>
+                    <span class="progress-text">3 of 5 completed</span>
+                </div>
+            </div>
+
+            <!-- Security Alerts -->
+            <div class="glass-card p-4 mb-4">
+                <h6><i class="fas fa-exclamation-triangle"></i> Security Alerts</h6>
+                
+                <div class="security-alerts">
+                    <div class="alert-item warning">
+                        <div class="alert-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h6>Unusual Login Location</h6>
+                            <p>A login attempt was made from an unrecognized location.</p>
+                            <small>2 hours ago</small>
+                        </div>
+                    </div>
+                    
+                    <div class="alert-item info">
+                        <div class="alert-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h6>Password Due for Change</h6>
+                            <p>Consider updating your password for better security.</p>
+                            <small>1 week ago</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Tips -->
+            <div class="glass-card p-4">
+                <h6><i class="fas fa-lightbulb"></i> Security Tips</h6>
+                
+                <div class="security-tips">
+                    <div class="tip-item">
+                        <i class="fas fa-key"></i>
+                        <div>
+                            <h6>Use Strong Passwords</h6>
+                            <p>Create passwords with at least 12 characters, including numbers, symbols, and mixed case letters.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-item">
+                        <i class="fas fa-shield-check"></i>
+                        <div>
+                            <h6>Enable 2FA</h6>
+                            <p>Two-factor authentication adds an extra security layer to your account.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-item">
+                        <i class="fas fa-eye"></i>
+                        <div>
+                            <h6>Monitor Activity</h6>
+                            <p>Regularly check your account activity for any suspicious behavior.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-key"></i> Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('change_password') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Current Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" name="current_password" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword(this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" name="new_password" 
+                                   id="newPassword" required minlength="8">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword(this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength-indicator mt-2">
+                            <div class="strength-bar">
+                                <div class="strength-fill" id="passwordStrength"></div>
+                            </div>
+                            <span class="strength-text" id="strengthText">Enter password</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" name="confirm_password" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword(this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="password-requirements">
+                        <h6>Password Requirements:</h6>
+                        <ul class="requirements-list">
+                            <li id="length-req"><i class="fas fa-times"></i> At least 8 characters</li>
+                            <li id="uppercase-req"><i class="fas fa-times"></i> One uppercase letter</li>
+                            <li id="lowercase-req"><i class="fas fa-times"></i> One lowercase letter</li>
+                            <li id="number-req"><i class="fas fa-times"></i> One number</li>
+                            <li id="special-req"><i class="fas fa-times"></i> One special character</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="changePasswordBtn" disabled>
+                        <i class="fas fa-save"></i> Change Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2FA Setup Modal -->
+<div class="modal fade" id="setup2FAModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-shield-check"></i> Enable Two-Factor Authentication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="2fa-setup">
+                    <div class="step-indicator">
+                        <div class="step active">1</div>
+                        <div class="step">2</div>
+                        <div class="step">3</div>
+                    </div>
+                    
+                    <div class="step-content">
+                        <h6>Choose Authentication Method</h6>
+                        <div class="method-options">
+                            <div class="method-option selected">
+                                <i class="fas fa-mobile-alt"></i>
+                                <div>
+                                    <h6>SMS</h6>
+                                    <p>Receive codes via text message</p>
+                                </div>
+                                <input type="radio" name="2fa_method" value="sms" checked>
+                            </div>
+                            <div class="method-option">
+                                <i class="fas fa-qrcode"></i>
+                                <div>
+                                    <h6>Authenticator App</h6>
+                                    <p>Use Google Authenticator or similar</p>
+                                </div>
+                                <input type="radio" name="2fa_method" value="app">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">
+                    <i class="fas fa-arrow-right"></i> Continue
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Password strength checker
+document.getElementById('newPassword').addEventListener('input', function() {
+    const password = this.value;
+    const strength = checkPasswordStrength(password);
+    updatePasswordStrength(strength);
+    validatePasswordRequirements(password);
+});
+
+function checkPasswordStrength(password) {
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    
+    return score;
+}
+
+function updatePasswordStrength(score) {
+    const strengthFill = document.getElementById('passwordStrength');
+    const strengthText = document.getElementById('strengthText');
+    
+    const levels = [
+        { text: 'Very Weak', class: 'very-weak', width: '20%' },
+        { text: 'Weak', class: 'weak', width: '40%' },
+        { text: 'Fair', class: 'fair', width: '60%' },
+        { text: 'Good', class: 'good', width: '80%' },
+        { text: 'Strong', class: 'strong', width: '100%' }
+    ];
+    
+    const level = levels[score - 1] || levels[0];
+    
+    strengthFill.className = `strength-fill ${level.class}`;
+    strengthFill.style.width = level.width;
+    strengthText.textContent = level.text;
+    
+    // Enable submit button only for good or strong passwords
+    const submitBtn = document.getElementById('changePasswordBtn');
+    submitBtn.disabled = score < 4;
+}
+
+function validatePasswordRequirements(password) {
+    const requirements = {
+        'length-req': password.length >= 8,
+        'uppercase-req': /[A-Z]/.test(password),
+        'lowercase-req': /[a-z]/.test(password),
+        'number-req': /\d/.test(password),
+        'special-req': /[^A-Za-z0-9]/.test(password)
+    };
+    
+    Object.keys(requirements).forEach(req => {
+        const element = document.getElementById(req);
+        const icon = element.querySelector('i');
+        
+        if (requirements[req]) {
+            icon.className = 'fas fa-check';
+            element.classList.add('valid');
+        } else {
+            icon.className = 'fas fa-times';
+            element.classList.remove('valid');
+        }
+    });
+}
+
+function togglePassword(button) {
+    const input = button.parentNode.querySelector('input');
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+function enable2FA() {
+    const modal = new bootstrap.Modal(document.getElementById('setup2FAModal'));
+    modal.show();
+}
+
+function manageBiometrics() {
+    CashIT.showNotification('Biometric management feature coming soon!', 'info');
+}
+
+// Activity filter functionality
+document.querySelectorAll('[data-filter]').forEach(button => {
+    button.addEventListener('click', function() {
+        document.querySelectorAll('[data-filter]').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        const filter = this.dataset.filter;
+        filterActivity(filter);
+    });
+});
+
+function filterActivity(filter) {
+    const items = document.querySelectorAll('.activity-item');
+    items.forEach(item => {
+        if (filter === 'all') {
+            item.style.display = 'flex';
+        } else {
+            const type = item.querySelector('.activity-icon').classList[1];
+            item.style.display = type === filter ? 'flex' : 'none';
+        }
+    });
+}
+
+// Device sign out functionality
+document.querySelectorAll('.device-item .btn-outline-danger').forEach(button => {
+    button.addEventListener('click', function() {
+        if (confirm('Are you sure you want to sign out this device?')) {
+            const deviceItem = this.closest('.device-item');
+            deviceItem.style.opacity = '0.5';
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing out...';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                deviceItem.remove();
+                CashIT.showNotification('Device signed out successfully', 'success');
+            }, 2000);
+        }
+    });
+});
+
+// Animate security score on load
+document.addEventListener('DOMContentLoaded', function() {
+    const scoreElement = document.querySelector('.score-value');
+    if (scoreElement) {
+        CashIT.animateNumber(scoreElement, 0, 92, 2000);
+    }
+});
+</script>
+
+<style>
+.security-score {
+    text-align: center;
+}
+
+.score-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #27ae60, #2ecc71);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+}
+
+.score-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.score-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.security-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.security-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.5rem;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.5);
+}
+
+.security-info {
+    flex: 1;
+    margin-right: 2rem;
+}
+
+.security-info h6 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.security-info p {
+    margin: 0 0 0.5rem 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.password-strength {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.strength-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.strength-fill.strong {
+    background: #27ae60;
+    width: 100%;
+}
+
+.strength-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #27ae60;
+}
+
+.status-badge {
+    padding: 0.2rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-badge.enabled {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+}
+
+.status-badge.disabled {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+}
+
+.status-badge.success {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+}
+
+.status-badge.warning {
+    background: rgba(243, 156, 18, 0.1);
+    color: #f39c12;
+}
+
+.activity-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.activity-filters .btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+    background: rgba(0,0,0,0.02);
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+}
+
+.activity-icon.login {
+    background: #3498db;
+}
+
+.activity-icon.password {
+    background: #e67e22;
+}
+
+.activity-icon.settings {
+    background: #9b59b6;
+}
+
+.activity-details {
+    flex: 1;
+}
+
+.activity-description {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.3rem;
+}
+
+.activity-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    flex-wrap: wrap;
+}
+
+.activity-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.devices-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.device-item {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.5);
+}
+
+.device-item.current {
+    border-color: #27ae60;
+    background: rgba(39, 174, 96, 0.05);
+}
+
+.device-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    margin-right: 1rem;
+}
+
+.device-info {
+    flex: 1;
+}
+
+.device-info h6 {
+    margin: 0 0 0.3rem 0;
+    color: #2c3e50;
+}
+
+.device-info p {
+    margin: 0 0 0.2rem 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.device-location {
+    font-size: 0.8rem;
+    color: #95a5a6;
+}
+
+.security-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem 0;
+}
+
+.checklist-item.completed i {
+    color: #27ae60;
+}
+
+.checklist-item.pending i {
+    color: #bdc3c7;
+}
+
+.checklist-progress {
+    text-align: center;
+}
+
+.progress-text {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+.security-alerts {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.alert-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.alert-item.warning {
+    background: rgba(243, 156, 18, 0.05);
+    border-left-color: #f39c12;
+}
+
+.alert-item.info {
+    background: rgba(52, 152, 219, 0.05);
+    border-left-color: #3498db;
+}
+
+.alert-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.alert-item.warning .alert-icon {
+    background: #f39c12;
+}
+
+.alert-item.info .alert-icon {
+    background: #3498db;
+}
+
+.alert-content h6 {
+    margin: 0 0 0.3rem 0;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.alert-content p {
+    margin: 0 0 0.5rem 0;
+    color: #7f8c8d;
+    font-size: 0.8rem;
+}
+
+.alert-content small {
+    color: #95a5a6;
+}
+
+.security-tips {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.tip-item i {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    margin-top: 0.2rem;
+}
+
+.tip-item h6 {
+    margin: 0 0 0.3rem 0;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.tip-item p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.password-strength-indicator {
+    margin-top: 0.5rem;
+}
+
+.password-strength-indicator .strength-bar {
+    height: 4px;
+    margin-bottom: 0.3rem;
+}
+
+.strength-fill.very-weak {
+    background: #e74c3c;
+    width: 20%;
+}
+
+.strength-fill.weak {
+    background: #e67e22;
+    width: 40%;
+}
+
+.strength-fill.fair {
+    background: #f39c12;
+    width: 60%;
+}
+
+.strength-fill.good {
+    background: #2ecc71;
+    width: 80%;
+}
+
+.strength-fill.strong {
+    background: #27ae60;
+    width: 100%;
+}
+
+.strength-text {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.password-requirements {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+}
+
+.password-requirements h6 {
+    margin: 0 0 0.8rem 0;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.requirements-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.requirements-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+    font-size: 0.8rem;
+    color: #7f8c8d;
+}
+
+.requirements-list li.valid {
+    color: #27ae60;
+}
+
+.requirements-list li i {
+    width: 16px;
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.step {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #bdc3c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.step.active {
+    background: #667eea;
+}
+
+.method-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.method-option {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.method-option.selected {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.method-option i {
+    font-size: 1.5rem;
+    color: #667eea;
+    margin-right: 1rem;
+}
+
+.method-option div {
+    flex: 1;
+}
+
+.method-option h6 {
+    margin: 0 0 0.3rem 0;
+    color: #2c3e50;
+}
+
+.method-option p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .security-item {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .security-info {
+        margin-right: 0;
+    }
+    
+    .device-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .activity-meta {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+}
+</style>
+{% endblock %}

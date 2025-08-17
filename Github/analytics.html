@@ -1,0 +1,788 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Analytics - Cash IT{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1><i class="fas fa-chart-bar"></i> Financial Analytics</h1>
+                        <p class="text-muted mb-0">Comprehensive insights into your financial health and patterns</p>
+                    </div>
+                    <div class="analytics-period">
+                        <select class="form-select" id="analyticsPeriod">
+                            <option value="1m">Last Month</option>
+                            <option value="3m" selected>Last 3 Months</option>
+                            <option value="6m">Last 6 Months</option>
+                            <option value="1y">Last Year</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="analytics-metric-card income">
+                <div class="metric-icon">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+                <div class="metric-info">
+                    <h3>${{ "{:,.2f}".format(insights.spending_trends.current_month_total) }}</h3>
+                    <p>Monthly Income</p>
+                    <span class="metric-change positive">+5.2%</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="analytics-metric-card expenses">
+                <div class="metric-icon">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+                <div class="metric-info">
+                    <h3>${{ "{:,.2f}".format(insights.spending_trends.current_month_total) }}</h3>
+                    <p>Monthly Expenses</p>
+                    <span class="metric-change {{ 'negative' if insights.spending_trends.change_percentage > 0 else 'positive' }}">
+                        {{ '+' if insights.spending_trends.change_percentage > 0 else '' }}{{ "{:.1f}".format(insights.spending_trends.change_percentage) }}%
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="analytics-metric-card savings">
+                <div class="metric-icon">
+                    <i class="fas fa-piggy-bank"></i>
+                </div>
+                <div class="metric-info">
+                    <h3>${{ "{:,.2f}".format(insights.savings_progress.total_current) }}</h3>
+                    <p>Total Savings</p>
+                    <span class="metric-change positive">+12.8%</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="analytics-metric-card investments">
+                <div class="metric-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="metric-info">
+                    <h3>${{ "{:,.2f}".format(insights.investment_performance.current_value) }}</h3>
+                    <p>Investment Value</p>
+                    <span class="metric-change {{ 'positive' if insights.investment_performance.return_percentage >= 0 else 'negative' }}">
+                        {{ '+' if insights.investment_performance.return_percentage >= 0 else '' }}{{ "{:.1f}".format(insights.investment_performance.return_percentage) }}%
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Cash Flow Chart -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-chart-area"></i> Cash Flow Analysis</h5>
+                <div class="chart-controls mb-3">
+                    <button class="btn btn-outline-primary btn-sm active" data-chart="cashflow">Cash Flow</button>
+                    <button class="btn btn-outline-primary btn-sm" data-chart="spending">Spending Trends</button>
+                    <button class="btn btn-outline-primary btn-sm" data-chart="category">By Category</button>
+                </div>
+                <canvas id="cashFlowChart" width="800" height="400"></canvas>
+            </div>
+        </div>
+
+        <!-- Spending Breakdown -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-chart-pie"></i> Spending Breakdown</h5>
+                <canvas id="spendingPieChart" width="400" height="400"></canvas>
+                
+                <div class="spending-categories mt-3">
+                    {% for category, amount in insights.spending_trends.top_categories %}
+                    <div class="category-item">
+                        <div class="category-color" style="background-color: {{ loop.index0 | category_color }}"></div>
+                        <span class="category-name">{{ category }}</span>
+                        <span class="category-amount">${{ "{:,.2f}".format(amount) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Health Score -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-heartbeat"></i> Financial Health Score</h5>
+                
+                <div class="health-score-container">
+                    <div class="health-score-gauge">
+                        <div class="gauge-circle">
+                            <div class="gauge-fill" style="--score: 75"></div>
+                            <div class="gauge-center">
+                                <span class="score-value">75</span>
+                                <span class="score-label">Good</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="health-factors">
+                        <div class="factor-item">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <span>Emergency fund established</span>
+                            <span class="factor-score">+15</span>
+                        </div>
+                        <div class="factor-item">
+                            <i class="fas fa-chart-line text-success"></i>
+                            <span>Consistent savings rate</span>
+                            <span class="factor-score">+20</span>
+                        </div>
+                        <div class="factor-item">
+                            <i class="fas fa-credit-card text-warning"></i>
+                            <span>Credit utilization moderate</span>
+                            <span class="factor-score">+10</span>
+                        </div>
+                        <div class="factor-item">
+                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                            <span>High spending in dining</span>
+                            <span class="factor-score">-5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Performance -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-bullseye"></i> Budget Performance</h5>
+                
+                {% if insights.budget_performance.categories %}
+                <div class="budget-performance">
+                    {% for category, data in insights.budget_performance.categories.items() %}
+                    <div class="budget-category-performance">
+                        <div class="category-header">
+                            <span class="category-name">{{ category }}</span>
+                            <span class="category-percentage {{ 'over-budget' if data.percentage > 100 else 'on-track' if data.percentage > 80 else 'under-budget' }}">
+                                {{ "{:.0f}".format(data.percentage) }}%
+                            </span>
+                        </div>
+                        <div class="progress mb-2">
+                            <div class="progress-bar {{ 'bg-danger' if data.percentage > 100 else 'bg-warning' if data.percentage > 80 else 'bg-success' }}" 
+                                 style="width: {{ min(data.percentage, 100) }}%"></div>
+                        </div>
+                        <div class="budget-amounts">
+                            <span class="spent">${{ "{:,.2f}".format(data.spent) }} spent</span>
+                            <span class="remaining">
+                                {% if data.remaining > 0 %}
+                                    ${{ "{:,.2f}".format(data.remaining) }} left
+                                {% else %}
+                                    ${{ "{:,.2f}".format(abs(data.remaining)) }} over
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-calculator"></i>
+                    <p>Create a budget to see performance analytics</p>
+                    <a href="{{ url_for('budget') }}" class="btn btn-primary btn-sm">Create Budget</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Goals Progress -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-target"></i> Goals Progress</h5>
+                
+                {% if insights.savings_progress.goals %}
+                <div class="goals-progress">
+                    {% for goal in insights.savings_progress.goals %}
+                    {% set progress = (goal.current_amount / goal.target_amount * 100) if goal.target_amount > 0 else 0 %}
+                    <div class="goal-progress-item">
+                        <div class="goal-info">
+                            <h6>{{ goal.name }}</h6>
+                            <p class="goal-target">Target: ${{ "{:,.2f}".format(goal.target_amount) }} by {{ goal.target_date }}</p>
+                        </div>
+                        <div class="goal-progress-bar">
+                            <div class="progress">
+                                <div class="progress-bar bg-success" style="width: {{ min(progress, 100) }}%"></div>
+                            </div>
+                            <span class="progress-text">{{ "{:.1f}".format(progress) }}%</span>
+                        </div>
+                        <div class="goal-amount">
+                            <span class="current">${{ "{:,.2f}".format(goal.current_amount) }}</span>
+                            <span class="remaining">${{ "{:,.2f}".format(goal.target_amount - goal.current_amount) }} to go</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-target"></i>
+                    <p>Set savings goals to track your progress</p>
+                    <a href="{{ url_for('savings') }}" class="btn btn-primary btn-sm">Create Goal</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations -->
+    {% if insights.recommendations %}
+    <div class="row">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-lightbulb"></i> Personalized Recommendations</h5>
+                
+                <div class="recommendations-grid">
+                    {% for recommendation in insights.recommendations %}
+                    <div class="recommendation-card {{ recommendation.type }}">
+                        <div class="recommendation-icon">
+                            <i class="fas fa-{{ 'exclamation-triangle' if recommendation.type == 'warning' else 'lightbulb' if recommendation.type == 'info' else 'check-circle' }}"></i>
+                        </div>
+                        <div class="recommendation-content">
+                            <h6>{{ recommendation.title }}</h6>
+                            <p>{{ recommendation.message }}</p>
+                        </div>
+                        <div class="recommendation-action">
+                            <button class="btn btn-outline-primary btn-sm">Take Action</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initializeAnalytics();
+});
+
+function initializeAnalytics() {
+    createCashFlowChart();
+    createSpendingPieChart();
+    initializeChartControls();
+    animateHealthScore();
+}
+
+function createCashFlowChart() {
+    const ctx = document.getElementById('cashFlowChart').getContext('2d');
+    
+    // Mock data for demonstration - in production this would come from the backend
+    const cashFlowData = {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [
+            {
+                label: 'Income',
+                data: [4500, 4200, 4800, 4600, 5000, 4900],
+                backgroundColor: 'rgba(39, 174, 96, 0.2)',
+                borderColor: '#27ae60',
+                borderWidth: 3,
+                fill: true
+            },
+            {
+                label: 'Expenses',
+                data: [3200, 3800, 3500, 4100, 3900, 3600],
+                backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                borderColor: '#e74c3c',
+                borderWidth: 3,
+                fill: true
+            }
+        ]
+    };
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: cashFlowData,
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Monthly Cash Flow'
+                },
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+}
+
+function createSpendingPieChart() {
+    const ctx = document.getElementById('spendingPieChart').getContext('2d');
+    
+    const spendingData = {
+        labels: {{ [cat[0] for cat in insights.spending_trends.top_categories] | tojson }},
+        datasets: [{
+            data: {{ [cat[1] for cat in insights.spending_trends.top_categories] | tojson }},
+            backgroundColor: CashIT.chartColors.primary.slice(0, {{ insights.spending_trends.top_categories | length }}),
+            borderWidth: 2,
+            borderColor: '#ffffff'
+        }]
+    };
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: spendingData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+function initializeChartControls() {
+    document.querySelectorAll('[data-chart]').forEach(button => {
+        button.addEventListener('click', function() {
+            document.querySelectorAll('[data-chart]').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            const chartType = this.dataset.chart;
+            // Switch chart data based on selection
+            console.log('Switching to chart:', chartType);
+        });
+    });
+}
+
+function animateHealthScore() {
+    const scoreElement = document.querySelector('.score-value');
+    if (scoreElement) {
+        CashIT.animateNumber(scoreElement, 0, 75, 2000);
+    }
+}
+
+// Analytics period change handler
+document.getElementById('analyticsPeriod').addEventListener('change', function() {
+    const period = this.value;
+    CashIT.showNotification(`Analytics updated for ${period}`, 'info', 2000);
+    // Reload analytics data for selected period
+});
+</script>
+
+<style>
+.analytics-metric-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.analytics-metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.analytics-metric-card.income .metric-icon {
+    background: linear-gradient(45deg, #27ae60, #2ecc71);
+}
+
+.analytics-metric-card.expenses .metric-icon {
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+}
+
+.analytics-metric-card.savings .metric-icon {
+    background: linear-gradient(45deg, #3498db, #2980b9);
+}
+
+.analytics-metric-card.investments .metric-icon {
+    background: linear-gradient(45deg, #9b59b6, #8e44ad);
+}
+
+.metric-info h3 {
+    margin: 0;
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #2c3e50;
+}
+
+.metric-info p {
+    margin: 0.2rem 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.metric-change {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+}
+
+.metric-change.positive {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+}
+
+.metric-change.negative {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chart-controls .btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.spending-categories {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.category-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.8rem;
+}
+
+.category-name {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #2c3e50;
+}
+
+.category-amount {
+    font-weight: 600;
+    color: #e74c3c;
+    font-size: 0.9rem;
+}
+
+.health-score-gauge {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.gauge-circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 0deg,
+        #e74c3c 0deg 72deg,
+        #f39c12 72deg 144deg,
+        #27ae60 144deg 216deg,
+        #2ecc71 216deg 288deg,
+        #3498db 288deg 360deg
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.gauge-circle::before {
+    content: '';
+    width: 110px;
+    height: 110px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+}
+
+.gauge-center {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.score-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #27ae60;
+    line-height: 1;
+}
+
+.score-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-top: 0.2rem;
+}
+
+.health-factors {
+    margin-top: 1rem;
+}
+
+.factor-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    gap: 0.8rem;
+}
+
+.factor-item span:nth-child(2) {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #2c3e50;
+}
+
+.factor-score {
+    font-weight: 600;
+    color: #27ae60;
+    font-size: 0.8rem;
+}
+
+.budget-category-performance {
+    margin-bottom: 1.5rem;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.category-percentage.over-budget {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.category-percentage.on-track {
+    color: #f39c12;
+    font-weight: bold;
+}
+
+.category-percentage.under-budget {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.budget-amounts {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #7f8c8d;
+}
+
+.goals-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.goal-progress-item {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.5);
+}
+
+.goal-info {
+    flex: 1;
+}
+
+.goal-info h6 {
+    margin: 0 0 0.3rem 0;
+    color: #2c3e50;
+}
+
+.goal-target {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #7f8c8d;
+}
+
+.goal-progress-bar {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.goal-progress-bar .progress {
+    flex: 1;
+    height: 8px;
+    border-radius: 10px;
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #27ae60;
+    min-width: 40px;
+}
+
+.goal-amount {
+    text-align: right;
+    flex: 1;
+}
+
+.goal-amount .current {
+    display: block;
+    font-weight: bold;
+    color: #27ae60;
+    font-size: 1.1rem;
+}
+
+.goal-amount .remaining {
+    display: block;
+    font-size: 0.8rem;
+    color: #7f8c8d;
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.recommendation-card {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-radius: 15px;
+    border: 1px solid rgba(0,0,0,0.1);
+    gap: 1rem;
+}
+
+.recommendation-card.warning {
+    background: rgba(243, 156, 18, 0.05);
+    border-left: 4px solid #f39c12;
+}
+
+.recommendation-card.info {
+    background: rgba(52, 152, 219, 0.05);
+    border-left: 4px solid #3498db;
+}
+
+.recommendation-card.success {
+    background: rgba(39, 174, 96, 0.05);
+    border-left: 4px solid #27ae60;
+}
+
+.recommendation-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.recommendation-card.warning .recommendation-icon {
+    background: #f39c12;
+}
+
+.recommendation-card.info .recommendation-icon {
+    background: #3498db;
+}
+
+.recommendation-card.success .recommendation-icon {
+    background: #27ae60;
+}
+
+.recommendation-content {
+    flex: 1;
+}
+
+.recommendation-content h6 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.recommendation-content p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+    .analytics-metric-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .goal-progress-item {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .goal-progress-bar {
+        width: 100%;
+    }
+    
+    .recommendations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

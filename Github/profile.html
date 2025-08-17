@@ -1,0 +1,623 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Cash IT{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1><i class="fas fa-user-edit"></i> Profile Management</h1>
+                        <p class="text-muted mb-0">Manage your personal information and account preferences</p>
+                    </div>
+                    <div class="profile-avatar">
+                        <div class="avatar-circle">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <button class="btn btn-outline-primary btn-sm mt-2">
+                            <i class="fas fa-camera"></i> Change Photo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 mb-4">
+                <h5><i class="fas fa-info-circle"></i> Personal Information</h5>
+                
+                <form method="POST" action="{{ url_for('update_profile') }}" id="profileForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="name" 
+                                   value="{{ user.name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" 
+                                   value="{{ user.email }}" disabled>
+                            <small class="text-muted">Email cannot be changed</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" name="phone" 
+                                   value="{{ user.profile.phone }}" placeholder="+1-555-123-4567">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" name="date_of_birth" 
+                                   value="{{ user.profile.date_of_birth }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" name="address" rows="2" 
+                                      placeholder="Your full address">{{ user.profile.address }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Employment</label>
+                            <input type="text" class="form-control" name="employment" 
+                                   value="{{ user.profile.employment }}" placeholder="Job title or occupation">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Annual Income</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" name="annual_income" 
+                                       value="{{ user.profile.annual_income }}" min="0" step="1000">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <button type="button" class="btn btn-secondary ms-2" onclick="resetForm()">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Account Settings -->
+            <div class="glass-card p-4 mb-4">
+                <h5><i class="fas fa-cog"></i> Account Settings</h5>
+                
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h6><i class="fas fa-bell"></i> Notifications</h6>
+                            <p>Manage your email and SMS notification preferences</p>
+                        </div>
+                        <div class="setting-control">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                <label class="form-check-label" for="emailNotifications">Email</label>
+                            </div>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="smsNotifications">
+                                <label class="form-check-label" for="smsNotifications">SMS</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h6><i class="fas fa-moon"></i> Dark Mode</h6>
+                            <p>Switch between light and dark interface themes</p>
+                        </div>
+                        <div class="setting-control">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="darkMode">
+                                <label class="form-check-label" for="darkMode">Enable Dark Mode</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h6><i class="fas fa-language"></i> Language</h6>
+                            <p>Choose your preferred language for the interface</p>
+                        </div>
+                        <div class="setting-control">
+                            <select class="form-select" id="language">
+                                <option value="en" selected>English</option>
+                                <option value="es">Español</option>
+                                <option value="fr">Français</option>
+                                <option value="de">Deutsch</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h6><i class="fas fa-dollar-sign"></i> Currency</h6>
+                            <p>Default currency for displaying amounts</p>
+                        </div>
+                        <div class="setting-control">
+                            <select class="form-select" id="currency">
+                                <option value="USD" selected>USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                                <option value="JPY">JPY (¥)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Privacy Settings -->
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-shield-alt"></i> Privacy & Security</h5>
+                
+                <div class="privacy-settings">
+                    <div class="privacy-item">
+                        <div class="privacy-info">
+                            <h6>Data Sharing</h6>
+                            <p>Control how your financial data is used for insights and recommendations</p>
+                        </div>
+                        <div class="privacy-control">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="dataInsights" checked>
+                                <label class="form-check-label" for="dataInsights">
+                                    Allow data analysis for personalized insights
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="marketingData">
+                                <label class="form-check-label" for="marketingData">
+                                    Use data for marketing and promotional offers
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="privacy-item">
+                        <div class="privacy-info">
+                            <h6>Account Activity</h6>
+                            <p>Manage login sessions and connected devices</p>
+                        </div>
+                        <div class="privacy-control">
+                            <button class="btn btn-outline-warning btn-sm">
+                                <i class="fas fa-sign-out-alt"></i> Sign out all devices
+                            </button>
+                            <a href="{{ url_for('security') }}" class="btn btn-outline-info btn-sm ms-2">
+                                <i class="fas fa-eye"></i> View login history
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Account Summary -->
+            <div class="glass-card p-4 mb-4">
+                <h6><i class="fas fa-chart-bar"></i> Account Summary</h6>
+                
+                <div class="account-stats">
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Member Since</span>
+                            <span class="stat-value">{{ user.created_at[:10] }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Active Accounts</span>
+                            <span class="stat-value">{{ user.accounts.keys() | length }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Transactions</span>
+                            <span class="stat-value">150+</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-shield-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Security Score</span>
+                            <span class="stat-value text-success">Strong</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="glass-card p-4 mb-4">
+                <h6><i class="fas fa-bolt"></i> Quick Actions</h6>
+                
+                <div class="quick-actions">
+                    <a href="{{ url_for('export_transactions', format='pdf') }}" class="action-item">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>Export Statements</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    
+                    <a href="{{ url_for('security') }}" class="action-item">
+                        <i class="fas fa-key"></i>
+                        <span>Change Password</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    
+                    <a href="#" class="action-item" onclick="showDeleteAccountModal()">
+                        <i class="fas fa-trash"></i>
+                        <span>Close Account</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Help & Support -->
+            <div class="glass-card p-4">
+                <h6><i class="fas fa-question-circle"></i> Help & Support</h6>
+                
+                <div class="support-links">
+                    <a href="#" class="support-link">
+                        <i class="fas fa-book"></i>
+                        <span>User Guide</span>
+                    </a>
+                    
+                    <a href="#" class="support-link">
+                        <i class="fas fa-comments"></i>
+                        <span>Contact Support</span>
+                    </a>
+                    
+                    <a href="#" class="support-link">
+                        <i class="fas fa-bug"></i>
+                        <span>Report Issue</span>
+                    </a>
+                    
+                    <a href="#" class="support-link">
+                        <i class="fas fa-star"></i>
+                        <span>Rate Our App</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Close Account
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <strong>Warning:</strong> This action cannot be undone. All your account data will be permanently deleted.
+                </div>
+                
+                <p>Before closing your account, please ensure:</p>
+                <ul>
+                    <li>All outstanding bills are paid</li>
+                    <li>Account balances are transferred out</li>
+                    <li>You have downloaded your transaction history</li>
+                </ul>
+                
+                <div class="mb-3">
+                    <label class="form-label">Type "DELETE" to confirm:</label>
+                    <input type="text" class="form-control" id="deleteConfirmation" placeholder="DELETE">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton" disabled>
+                    <i class="fas fa-trash"></i> Close Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function resetForm() {
+    document.getElementById('profileForm').reset();
+    CashIT.showNotification('Form reset to original values', 'info');
+}
+
+function showDeleteAccountModal() {
+    const modal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
+    modal.show();
+}
+
+// Delete confirmation logic
+document.getElementById('deleteConfirmation').addEventListener('input', function() {
+    const confirmButton = document.getElementById('confirmDeleteButton');
+    if (this.value === 'DELETE') {
+        confirmButton.disabled = false;
+        confirmButton.classList.remove('disabled');
+    } else {
+        confirmButton.disabled = true;
+        confirmButton.classList.add('disabled');
+    }
+});
+
+// Settings change handlers
+document.querySelectorAll('.form-check-input, .form-select').forEach(input => {
+    input.addEventListener('change', function() {
+        const settingName = this.id || this.name;
+        CashIT.showNotification(`${settingName} setting updated`, 'success', 2000);
+    });
+});
+
+// Form validation and submission
+document.getElementById('profileForm').addEventListener('submit', function(e) {
+    const phoneInput = document.querySelector('input[name="phone"]');
+    const phone = phoneInput.value;
+    
+    // Basic phone validation
+    if (phone && !/^[\+]?[1-9][\d]{0,15}$/.test(phone.replace(/[\s\-\(\)]/g, ''))) {
+        e.preventDefault();
+        CashIT.showNotification('Please enter a valid phone number', 'error');
+        phoneInput.focus();
+        return false;
+    }
+    
+    // Set loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    CashIT.setButtonLoading(submitBtn, true);
+});
+
+// Auto-save draft functionality
+const form = document.getElementById('profileForm');
+if (form) {
+    form.setAttribute('data-auto-save', 'true');
+}
+</script>
+
+<style>
+.profile-avatar {
+    text-align: center;
+}
+
+.avatar-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    margin: 0 auto 0.5rem;
+}
+
+.settings-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.5rem;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.5);
+}
+
+.setting-info {
+    flex: 1;
+    margin-right: 2rem;
+}
+
+.setting-info h6 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.setting-info p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.setting-control {
+    min-width: 150px;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+.privacy-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.privacy-item {
+    padding: 1.5rem;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.5);
+}
+
+.privacy-info {
+    margin-bottom: 1rem;
+}
+
+.privacy-info h6 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.privacy-info p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.privacy-control .form-check {
+    margin-bottom: 0.8rem;
+}
+
+.account-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.5);
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin-bottom: 0.2rem;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    text-decoration: none;
+    color: #2c3e50;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.5);
+    transition: all 0.3s ease;
+}
+
+.action-item:hover {
+    background: rgba(255,255,255,0.8);
+    color: #2c3e50;
+    text-decoration: none;
+    transform: translateX(5px);
+}
+
+.action-item i:first-child {
+    width: 20px;
+    margin-right: 1rem;
+}
+
+.action-item span {
+    flex: 1;
+}
+
+.action-item i:last-child {
+    opacity: 0.5;
+}
+
+.support-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.support-link {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem;
+    text-decoration: none;
+    color: #2c3e50;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+
+.support-link:hover {
+    background: rgba(255,255,255,0.6);
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.support-link i {
+    width: 20px;
+    margin-right: 0.8rem;
+    color: #667eea;
+}
+
+@media (max-width: 768px) {
+    .setting-item {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .setting-info {
+        margin-right: 0;
+    }
+    
+    .setting-control {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .profile-avatar {
+        margin-bottom: 2rem;
+    }
+}
+</style>
+{% endblock %}

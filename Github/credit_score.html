@@ -1,0 +1,706 @@
+{% extends "base.html" %}
+
+{% block title %}Credit Score - Cash IT{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1><i class="fas fa-credit-card"></i> Credit Score Monitor</h1>
+                        <p class="text-muted mb-0">Track your credit health and get improvement recommendations</p>
+                    </div>
+                    <div class="credit-score-badge">
+                        <span class="score-label">Credit Score</span>
+                        <span class="score-value" style="color: {{ credit_data.color }}">{{ credit_data.score }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credit Score Overview -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-tachometer-alt"></i> Your Credit Score</h5>
+                
+                <div class="credit-score-gauge">
+                    <div class="score-circle">
+                        <div class="score-display">
+                            <span class="score-number" style="color: {{ credit_data.color }}">{{ credit_data.score }}</span>
+                            <span class="score-rating" style="color: {{ credit_data.color }}">{{ credit_data.rating }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="score-range">
+                        <div class="range-item poor">
+                            <span class="range-label">Poor</span>
+                            <span class="range-values">300-579</span>
+                        </div>
+                        <div class="range-item fair">
+                            <span class="range-label">Fair</span>
+                            <span class="range-values">580-669</span>
+                        </div>
+                        <div class="range-item good">
+                            <span class="range-label">Good</span>
+                            <span class="range-values">670-739</span>
+                        </div>
+                        <div class="range-item very-good">
+                            <span class="range-label">Very Good</span>
+                            <span class="range-values">740-799</span>
+                        </div>
+                        <div class="range-item excellent">
+                            <span class="range-label">Excellent</span>
+                            <span class="range-values">800-850</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="score-insights mt-4">
+                    <h6>What this means:</h6>
+                    {% if credit_data.rating == 'Excellent' %}
+                    <p class="text-success">
+                        <i class="fas fa-check-circle"></i>
+                        Congratulations! You have an excellent credit score. You qualify for the best rates and terms on loans and credit cards.
+                    </p>
+                    {% elif credit_data.rating == 'Very Good' %}
+                    <p class="text-success">
+                        <i class="fas fa-thumbs-up"></i>
+                        Great job! You have a very good credit score. You'll qualify for competitive rates and favorable terms.
+                    </p>
+                    {% elif credit_data.rating == 'Good' %}
+                    <p class="text-warning">
+                        <i class="fas fa-info-circle"></i>
+                        You have a good credit score. You'll qualify for most loans and credit cards, though not always at the best rates.
+                    </p>
+                    {% elif credit_data.rating == 'Fair' %}
+                    <p class="text-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Your credit score is fair. You may qualify for some loans and credit cards, but at higher interest rates.
+                    </p>
+                    {% else %}
+                    <p class="text-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Your credit score needs improvement. Focus on the recommendations below to boost your score.
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-card p-4">
+                <h6><i class="fas fa-calendar-alt"></i> Score History</h6>
+                <div class="score-history">
+                    <!-- Mock historical data -->
+                    <div class="history-item">
+                        <span class="date">Aug 2024</span>
+                        <span class="score current">{{ credit_data.score }}</span>
+                        <span class="change">Current</span>
+                    </div>
+                    <div class="history-item">
+                        <span class="date">Jul 2024</span>
+                        <span class="score">{{ credit_data.score - 5 }}</span>
+                        <span class="change positive">+5</span>
+                    </div>
+                    <div class="history-item">
+                        <span class="date">Jun 2024</span>
+                        <span class="score">{{ credit_data.score - 8 }}</span>
+                        <span class="change positive">+3</span>
+                    </div>
+                    <div class="history-item">
+                        <span class="date">May 2024</span>
+                        <span class="score">{{ credit_data.score - 12 }}</span>
+                        <span class="change positive">+4</span>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <canvas id="scoreHistoryChart" width="300" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credit Factors -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-chart-pie"></i> Credit Score Factors</h5>
+                
+                <div class="row mt-3">
+                    {% for factor, percentage in credit_data.factors.items() %}
+                    <div class="col-md-6 col-lg-2-4 mb-3">
+                        <div class="credit-factor">
+                            <div class="factor-icon">
+                                <i class="fas fa-{{ 'history' if 'history' in factor else 'credit-card' if 'utilization' in factor else 'clock' if 'length' in factor else 'layer-group' if 'mix' in factor else 'plus' }}"></i>
+                            </div>
+                            <div class="factor-info">
+                                <h6>{{ factor.replace('_', ' ').title() }}</h6>
+                                <div class="factor-percentage">{{ percentage }}%</div>
+                                <div class="factor-description">
+                                    {% if 'payment' in factor %}
+                                        Your track record of on-time payments
+                                    {% elif 'utilization' in factor %}
+                                        How much of your available credit you use
+                                    {% elif 'length' in factor %}
+                                        How long you've had credit accounts
+                                    {% elif 'mix' in factor %}
+                                        Variety of credit accounts you have
+                                    {% else %}
+                                        Recent credit inquiries and accounts
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-3">
+                    <canvas id="factorsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations -->
+    {% if credit_data.suggestions %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h5><i class="fas fa-lightbulb"></i> Improvement Recommendations</h5>
+                
+                <div class="recommendations mt-3">
+                    {% for suggestion in credit_data.suggestions %}
+                    <div class="recommendation-item">
+                        <div class="recommendation-icon">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="recommendation-content">
+                            <p>{{ suggestion }}</p>
+                        </div>
+                        <div class="recommendation-impact">
+                            <span class="impact-label">Potential Impact</span>
+                            <span class="impact-value">+10-30 points</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Credit Monitoring Alerts -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="glass-card p-4">
+                <h6><i class="fas fa-shield-alt"></i> Credit Monitoring</h6>
+                
+                <div class="monitoring-status">
+                    <div class="status-item active">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Identity theft monitoring</span>
+                    </div>
+                    <div class="status-item active">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Credit report monitoring</span>
+                    </div>
+                    <div class="status-item active">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Score change alerts</span>
+                    </div>
+                    <div class="status-item inactive">
+                        <i class="fas fa-times-circle"></i>
+                        <span>Dark web monitoring</span>
+                    </div>
+                </div>
+                
+                <button class="btn btn-outline-primary btn-sm mt-3">
+                    <i class="fas fa-cog"></i> Manage Alerts
+                </button>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="glass-card p-4">
+                <h6><i class="fas fa-file-alt"></i> Credit Reports</h6>
+                
+                <div class="credit-reports">
+                    <div class="report-item">
+                        <div class="report-agency">Experian</div>
+                        <div class="report-date">Last updated: Aug 10, 2024</div>
+                        <button class="btn btn-outline-secondary btn-sm">View Report</button>
+                    </div>
+                    <div class="report-item">
+                        <div class="report-agency">Equifax</div>
+                        <div class="report-date">Last updated: Aug 8, 2024</div>
+                        <button class="btn btn-outline-secondary btn-sm">View Report</button>
+                    </div>
+                    <div class="report-item">
+                        <div class="report-agency">TransUnion</div>
+                        <div class="report-date">Last updated: Aug 12, 2024</div>
+                        <button class="btn btn-outline-secondary btn-sm">View Report</button>
+                    </div>
+                </div>
+                
+                <p class="small text-muted mt-3">
+                    <i class="fas fa-info-circle"></i>
+                    You're entitled to one free credit report per year from each bureau.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    createCreditCharts();
+    animateCreditScore();
+});
+
+function createCreditCharts() {
+    // Score History Chart
+    const historyCtx = document.getElementById('scoreHistoryChart').getContext('2d');
+    const historyData = [
+        {{ credit_data.score - 12 }},
+        {{ credit_data.score - 8 }},
+        {{ credit_data.score - 5 }},
+        {{ credit_data.score }}
+    ];
+    
+    new Chart(historyCtx, {
+        type: 'line',
+        data: {
+            labels: ['May', 'Jun', 'Jul', 'Aug'],
+            datasets: [{
+                label: 'Credit Score',
+                data: historyData,
+                borderColor: '{{ credit_data.color }}',
+                backgroundColor: '{{ credit_data.color }}20',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    min: Math.min(...historyData) - 20,
+                    max: Math.max(...historyData) + 20
+                }
+            }
+        }
+    });
+
+    // Credit Factors Chart
+    const factorsCtx = document.getElementById('factorsChart').getContext('2d');
+    const factorLabels = {{ credit_data.factors.keys() | list | tojson }};
+    const factorValues = {{ credit_data.factors.values() | list | tojson }};
+    
+    new Chart(factorsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: factorLabels.map(label => label.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())),
+            datasets: [{
+                data: factorValues,
+                backgroundColor: [
+                    '#e74c3c',
+                    '#f39c12',
+                    '#27ae60',
+                    '#3498db',
+                    '#9b59b6'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Credit Score Factor Breakdown'
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function animateCreditScore() {
+    const scoreElement = document.querySelector('.score-number');
+    const targetScore = {{ credit_data.score }};
+    
+    CashIT.animateNumber(scoreElement, 300, targetScore, 2000);
+}
+
+// Add click handlers for report buttons
+document.querySelectorAll('.report-item button').forEach(button => {
+    button.addEventListener('click', function() {
+        const agency = this.closest('.report-item').querySelector('.report-agency').textContent;
+        CashIT.showNotification(`${agency} credit report feature coming soon!`, 'info');
+    });
+});
+</script>
+
+<style>
+.credit-score-badge {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 1rem;
+    backdrop-filter: blur(10px);
+}
+
+.score-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 0.3rem;
+}
+
+.score-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.credit-score-gauge {
+    text-align: center;
+}
+
+.score-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 0deg,
+        #e74c3c 0deg 108deg,
+        #f39c12 108deg 162deg,
+        #27ae60 162deg 216deg,
+        #3498db 216deg 270deg,
+        #2ecc71 270deg 360deg
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    position: relative;
+}
+
+.score-circle::before {
+    content: '';
+    width: 160px;
+    height: 160px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+}
+
+.score-display {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.score-number {
+    display: block;
+    font-size: 3rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.score-rating {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-top: 0.3rem;
+}
+
+.score-range {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.range-item {
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    flex: 1;
+    min-width: 80px;
+}
+
+.range-item.poor {
+    background: rgba(231, 76, 60, 0.1);
+    color: #c0392b;
+}
+
+.range-item.fair {
+    background: rgba(243, 156, 18, 0.1);
+    color: #d68910;
+}
+
+.range-item.good {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+}
+
+.range-item.very-good {
+    background: rgba(52, 152, 219, 0.1);
+    color: #2980b9;
+}
+
+.range-item.excellent {
+    background: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+}
+
+.range-label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-bottom: 0.2rem;
+}
+
+.range-values {
+    display: block;
+    font-size: 0.7rem;
+}
+
+.score-history {
+    margin-bottom: 1rem;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.date {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+.score {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.score.current {
+    color: #27ae60;
+}
+
+.change {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+}
+
+.change.positive {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+}
+
+.credit-factor {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid rgba(0,0,0,0.1);
+    height: 100%;
+}
+
+.factor-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    margin: 0 auto 1rem;
+}
+
+.factor-info h6 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.factor-percentage {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 0.5rem;
+}
+
+.factor-description {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    line-height: 1.4;
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    background: rgba(39, 174, 96, 0.05);
+}
+
+.recommendation-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #27ae60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.recommendation-content {
+    flex: 1;
+}
+
+.recommendation-content p {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.recommendation-impact {
+    text-align: right;
+}
+
+.impact-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin-bottom: 0.2rem;
+}
+
+.impact-value {
+    display: block;
+    font-weight: bold;
+    color: #27ae60;
+}
+
+.monitoring-status {
+    margin-bottom: 1rem;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    gap: 0.8rem;
+}
+
+.status-item.active i {
+    color: #27ae60;
+}
+
+.status-item.inactive i {
+    color: #e74c3c;
+}
+
+.credit-reports {
+    margin-bottom: 1rem;
+}
+
+.report-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.report-item:last-child {
+    border-bottom: none;
+}
+
+.report-agency {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.report-date {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+}
+
+.col-lg-2-4 {
+    flex: 0 0 20%;
+    max-width: 20%;
+}
+
+@media (max-width: 992px) {
+    .col-lg-2-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+}
+
+@media (max-width: 768px) {
+    .col-lg-2-4 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+    
+    .score-circle {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .score-circle::before {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .score-number {
+        font-size: 2rem;
+    }
+    
+    .recommendation-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Cash IT{% endblock %}
+
+{% block content %}
+<div class="auth-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-7">
+                <div class="glass-card p-4">
+                    <div class="text-center mb-4">
+                        <h2><i class="fas fa-sign-in-alt"></i> Welcome Back</h2>
+                        <p class="text-muted">Sign in to your Cash IT account</p>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                                    <i class="fas fa-eye" id="password-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-sign-in-alt"></i> Sign In
+                        </button>
+                    </form>
+
+                    <div class="text-center">
+                        <button class="btn btn-link" onclick="showRegisterForm()">
+                            Don't have an account? Register here
+                        </button>
+                    </div>
+
+                    <!-- Demo Account Info -->
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6><i class="fas fa-info-circle"></i> Demo Account</h6>
+                        <p class="small mb-1"><strong>Email:</strong> demo@cashit.com</p>
+                        <p class="small mb-0"><strong>Password:</strong> password123</p>
+                    </div>
+                </div>
+
+                <!-- Registration Form (Hidden by default) -->
+                <div class="glass-card p-4 mt-4" id="registerCard" style="display: none;">
+                    <div class="text-center mb-4">
+                        <h2><i class="fas fa-user-plus"></i> Create Account</h2>
+                        <p class="text-muted">Join the Cash IT community</p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('register') }}" id="registerForm">
+                        <div class="mb-3">
+                            <label for="reg-name" class="form-label">
+                                <i class="fas fa-user"></i> Full Name
+                            </label>
+                            <input type="text" class="form-control" id="reg-name" name="name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reg-email" class="form-label">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <input type="email" class="form-control" id="reg-email" name="email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reg-password" class="form-label">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="reg-password" name="password" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('reg-password')">
+                                    <i class="fas fa-eye" id="reg-password-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirm-password" class="form-label">
+                                <i class="fas fa-lock"></i> Confirm Password
+                            </label>
+                            <input type="password" class="form-control" id="confirm-password" name="confirm_password" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100 mb-3">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </button>
+                    </form>
+
+                    <div class="text-center">
+                        <button class="btn btn-link" onclick="showLoginForm()">
+                            Already have an account? Sign in here
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showRegisterForm() {
+    document.getElementById('registerCard').style.display = 'block';
+    document.getElementById('registerCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showLoginForm() {
+    document.getElementById('registerCard').style.display = 'none';
+    document.querySelector('.glass-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const eye = document.getElementById(inputId + '-eye');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        eye.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        eye.className = 'fas fa-eye';
+    }
+}
+
+// Form validation
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const password = document.getElementById('reg-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Passwords do not match!');
+    }
+});
+</script>
+{% endblock %}

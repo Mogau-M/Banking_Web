@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}Savings Goals - Cash IT{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1><i class="fas fa-piggy-bank"></i> Savings Goals</h1>
+                        <p class="text-muted mb-0">Track your progress toward financial milestones</p>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGoalModal">
+                        <i class="fas fa-plus"></i> Create Goal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Savings Goals Overview -->
+    {% if savings_goals %}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="savings-summary-card">
+                <div class="summary-icon">
+                    <i class="fas fa-target"></i>
+                </div>
+                <div class="summary-info">
+                    <h3>{{ savings_goals | length }}</h3>
+                    <p>Active Goals</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="savings-summary-card">
+                <div class="summary-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="summary-info">
+                    <h3>${{ "{:,.2f}".format(savings_goals | sum(attribute='current_amount')) }}</h3>
+                    <p>Total Saved</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="savings-summary-card">
+                <div class="summary-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="summary-info">
+                    <h3>${{ "{:,.2f}".format(savings_goals | sum(attribute='target_amount')) }}</h3>
+                    <p>Target Amount</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Savings Goals List -->
+    <div class="row">
+        {% for goal in savings_goals %}
+        {% set progress_percentage = (goal.current_amount / goal.target_amount * 100) if goal.target_amount > 0 else 0 %}
+        {% set days_remaining = (goal.target_date | string | strptime('%Y-%m-%d') - datetime.now().date()) | attr('days') %}
+        
+        <div class="col-lg-6 mb-4">
+            <div class="savings-goal-card">
+                <div class="goal-header">
+                    <div class="goal-info">
+                        <h5>{{ goal.name }}</h5>
+                        <p class="goal-description">{{ goal.description }}</p>
+                    </div>
+                    <div class="goal-progress-circle">
+                        <svg width="60" height="60">
+                            <circle cx="30" cy="30" r="25" stroke="#e0e0e0" stroke-width="4" fill="none"/>
+                            <circle cx="30" cy="30" r="25" stroke="#27ae60" stroke-width="4" fill="none"
+                                    stroke-dasharray="{{ 2 * 3.14159 * 25 }}"
+                                    stroke-dashoffset="{{ 2 * 3.14159 * 25 * (1 - progress_percentage / 100) }}"
+                                    stroke-linecap="round"
+                                    style="transform: rotate(-90deg); transform-origin: 30px 30px;"/>
+                        </svg>
+                        <div class="progress-text">{{ "{:.0f}".format(progress_percentage) }}%</div>
+                    </div>
+                </div>
+                
+                <div class="goal-amounts">
+                    <div class="current-amount">
+                        <span class="label">Current</span>
+                        <span class="amount">${{ "{:,.2f}".format(goal.current_amount) }}</span>
+                    </div>
+                    <div class="target-amount">
+                        <span class="label">Target</span>
+                        <span class="amount">${{ "{:,.2f}".format(goal.target_amount) }}</span>
+                    </div>
+                </div>
+                
+                <div class="goal-progress-bar">
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: {{ min(progress_percentage, 100) }}%"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span>${{ "{:,.2f}".format(goal.target_amount - goal.current_amount) }} remaining</span>
+                        <span class="{{ 'text-danger' if days_remaining < 0 else 'text-warning' if days_remaining < 30 else 'text-success' }}">
+                            {% if days_remaining < 0 %}
+                                {{ abs(days_remaining) }} days overdue
+                            {% elif days_remaining == 0 %}
+                                Due today
+                            {% else %}
+                                {{ days_remaining }} days remaining
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="goal-actions">
+                    <div class="input-group">
+                        <input type="number" class="form-control" placeholder="Amount" 
+                               id="amount-{{ goal.id }}" step="0.01" min="0.01">
+                        <button class="btn btn-success" onclick="updateGoal('{{ goal.id }}', 'add')">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                        <button class="btn btn-warning" onclick="updateGoal('{{ goal.id }}', 'withdraw')">
+                            <i class="fas fa-minus"></i> Withdraw
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <div class="empty-state">
+                    <i class="fas fa-piggy-bank"></i>
+                    <h4>No Savings Goals Yet</h4>
+                    <p>Start building your financial future by setting your first savings goal.</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGoalModal">
+                        <i class="fas fa-plus"></i> Create Your First Goal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Create Goal Modal -->
+<div class="modal fade" id="createGoalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-piggy-bank"></i> Create Savings Goal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_savings_goal') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Goal Name</label>
+                        <input type="text" class="form-control" name="name" 
+                               placeholder="e.g., Emergency Fund, Vacation, New Car" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Target Amount</label>
+                        <input type="number" class="form-control" name="target_amount" 
+                               step="0.01" min="1" placeholder="0.00" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Target Date</label>
+                        <input type="date" class="form-control" name="target_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3" 
+                                  placeholder="Describe your savings goal..."></textarea>
+                    </div>
+                    
+                    <div class="goal-preview p-3 bg-light rounded">
+                        <h6>Goal Preview</h6>
+                        <div id="goalPreview">
+                            <p class="mb-1"><strong>Monthly Savings Needed:</strong> <span id="monthlySavings">$0</span></p>
+                            <p class="mb-0"><strong>Weekly Savings Needed:</strong> <span id="weeklySavings">$0</span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Create Goal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Update Goal Modal -->
+<div class="modal fade" id="updateGoalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Update Savings Goal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="updateGoalForm" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" class="form-control" name="amount" 
+                               step="0.01" min="0.01" placeholder="0.00" required>
+                    </div>
+                    <input type="hidden" name="operation" id="operationType">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="updateGoalButton">
+                        <i class="fas fa-save"></i> Update Goal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Calculate monthly/weekly savings needed
+document.addEventListener('DOMContentLoaded', function() {
+    const targetAmountInput = document.querySelector('input[name="target_amount"]');
+    const targetDateInput = document.querySelector('input[name="target_date"]');
+    const monthlySavings = document.getElementById('monthlySavings');
+    const weeklySavings = document.getElementById('weeklySavings');
+    
+    function updatePreview() {
+        const amount = parseFloat(targetAmountInput.value) || 0;
+        const targetDate = new Date(targetDateInput.value);
+        const today = new Date();
+        
+        if (amount > 0 && targetDate > today) {
+            const daysRemaining = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+            const monthsRemaining = daysRemaining / 30.44; // Average days per month
+            const weeksRemaining = daysRemaining / 7;
+            
+            const monthlyAmount = amount / monthsRemaining;
+            const weeklyAmount = amount / weeksRemaining;
+            
+            monthlySavings.textContent = CashIT.formatCurrency(monthlyAmount);
+            weeklySavings.textContent = CashIT.formatCurrency(weeklyAmount);
+        } else {
+            monthlySavings.textContent = '$0';
+            weeklySavings.textContent = '$0';
+        }
+    }
+    
+    targetAmountInput.addEventListener('input', updatePreview);
+    targetDateInput.addEventListener('change', updatePreview);
+});
+
+function updateGoal(goalId, operation) {
+    const amountInput = document.getElementById('amount-' + goalId);
+    const amount = parseFloat(amountInput.value);
+    
+    if (!amount || amount <= 0) {
+        CashIT.showNotification('Please enter a valid amount', 'error');
+        return;
+    }
+    
+    // Create form and submit
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/update_savings_goal/${goalId}`;
+    
+    const amountField = document.createElement('input');
+    amountField.type = 'hidden';
+    amountField.name = 'amount';
+    amountField.value = amount;
+    
+    const operationField = document.createElement('input');
+    operationField.type = 'hidden';
+    operationField.name = 'operation';
+    operationField.value = operation;
+    
+    form.appendChild(amountField);
+    form.appendChild(operationField);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Add celebration animation when goal is reached
+document.querySelectorAll('.goal-progress-circle').forEach(circle => {
+    const progressText = circle.querySelector('.progress-text');
+    const percentage = parseInt(progressText.textContent);
+    
+    if (percentage >= 100) {
+        circle.classList.add('goal-completed');
+        // Add confetti or celebration effect here
+    }
+});
+</script>
+
+<style>
+.savings-goal-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-left: 5px solid #27ae60;
+    transition: all 0.3s ease;
+}
+
+.savings-goal-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+.goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.goal-info h5 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.goal-description {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.goal-progress-circle {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #27ae60;
+}
+
+.goal-amounts {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.current-amount, .target-amount {
+    text-align: center;
+}
+
+.current-amount .label, .target-amount .label {
+    display: block;
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin-bottom: 0.2rem;
+}
+
+.current-amount .amount, .target-amount .amount {
+    display: block;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.goal-progress-bar .progress {
+    height: 8px;
+    border-radius: 10px;
+    background-color: rgba(0,0,0,0.1);
+    margin-bottom: 0.5rem;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+.goal-actions {
+    margin-top: 1rem;
+}
+
+.savings-summary-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.summary-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #27ae60, #2ecc71);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.summary-info h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+.summary-info p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.goal-completed .goal-progress-circle {
+    animation: celebrate 1s ease-in-out;
+}
+
+@keyframes celebrate {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+</style>
+{% endblock %}
